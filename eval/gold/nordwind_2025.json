@@ -1,0 +1,16 @@
+{
+  "company": "Nordwind Logistics AG", "year": 2025,
+  "fields": {
+    "scope1_emissions": 48210, "scope2_location": 9870, "scope2_market": 3120,
+    "scope3_emissions": 412500, "total_ghg_emissions": 463830,
+    "nox_emissions": 212, "sox_emissions": 4.1,
+    "water_withdrawal": 185.4, "water_discharge": 142.3, "water_consumption": 43.1,
+    "net_zero_target_year": 2045, "environmental_policy": "TEXT",
+    "total_employees": 11460, "female_employees_pct": 31.5, "employee_turnover_rate": 12.8,
+    "new_hires": 2140, "ltifr": 3.2, "fatalities": 0, "avg_training_hours": 18.4,
+    "human_rights_policy": "TEXT",
+    "board_size": 12, "independent_directors": 8, "female_directors": 5,
+    "ceo_chair_separated": true, "ceo_total_compensation": 3450000,
+    "board_committees": "TEXT", "confirmed_corruption_incidents": 0, "whistleblower_mechanism": "TEXT"
+  }
+}

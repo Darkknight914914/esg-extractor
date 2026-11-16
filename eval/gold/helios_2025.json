@@ -1,0 +1,17 @@
+{
+  "company": "Helios Components plc", "year": 2025,
+  "fields": {
+    "scope1_emissions": 21100, "scope2_location": null, "scope2_market": 6200,
+    "scope3_emissions": 151300, "total_ghg_emissions": 196000,
+    "nox_emissions": null, "sox_emissions": null,
+    "water_withdrawal": 598, "water_discharge": 441, "water_consumption": 157,
+    "net_zero_target_year": 2040, "environmental_policy": "TEXT",
+    "total_employees": 3215, "female_employees_pct": 24, "employee_turnover_rate": 9.6,
+    "new_hires": 402, "ltifr": 1.8, "fatalities": 0, "avg_training_hours": 22,
+    "human_rights_policy": "TEXT",
+    "board_size": 9, "independent_directors": 4, "female_directors": 3,
+    "ceo_chair_separated": false, "ceo_total_compensation": 2316600,
+    "board_committees": "TEXT", "confirmed_corruption_incidents": 0, "whistleblower_mechanism": null
+  },
+  "notes": "Total GHG (196.0 kt) is deliberately inconsistent with 1+2+3 (178.6 kt); the right outcome is extract-as-reported AND flag for review. CEO pay = GBP 1,980,000 at illustrative 1.17 EUR/GBP."
+}

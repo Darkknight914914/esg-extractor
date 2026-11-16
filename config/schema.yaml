@@ -1,0 +1,301 @@
+# ESG data-point schema
+# ---------------------
+# Each field is mapped to the real-world disclosure standards it comes from:
+#   GRI  = GRI Standards (2021), the most widely used sustainability reporting framework
+#   ESRS = European Sustainability Reporting Standards (CSRD)
+# type: number | count | percent | boolean | year | text
+# unit_family: links to conversion tables in esg_pipeline/normalize.py
+# keywords: used by the page locator to find candidate pages
+# better: lower | higher - which direction counts as an improvement (trend view)
+# patterns: (optional) regex anchors used by the rule-based baseline extractor
+
+fields:
+  # ---------------- ENVIRONMENTAL ----------------
+  - id: scope1_emissions
+    category: E
+    better: lower
+    label: Scope 1 GHG emissions (direct)
+    gri: "305-1"
+    esrs: "E1-6"
+    type: number
+    unit_family: emissions
+    target_unit: tCO2e
+    keywords: [scope 1, direct emissions, ghg emissions, tco2e, co2e]
+    patterns: ['scope\s*1(?!\s*\+)(?:\s*(?:ghg\s*)?emissions)?']
+
+  - id: scope2_location
+    category: E
+    better: lower
+    label: Scope 2 GHG emissions (location-based)
+    gri: "305-2"
+    esrs: "E1-6"
+    type: number
+    unit_family: emissions
+    target_unit: tCO2e
+    keywords: [scope 2, location-based, indirect emissions, purchased electricity]
+    patterns: ['scope\s*2[^|\n]{0,25}location[\s-]*based']
+
+  - id: scope2_market
+    category: E
+    better: lower
+    label: Scope 2 GHG emissions (market-based)
+    gri: "305-2"
+    esrs: "E1-6"
+    type: number
+    unit_family: emissions
+    target_unit: tCO2e
+    keywords: [scope 2, market-based, renewable electricity]
+    patterns: ['scope\s*2[^|\n]{0,25}market[\s-]*based']
+
+  - id: scope3_emissions
+    category: E
+    better: lower
+    label: Scope 3 GHG emissions (value chain, total)
+    gri: "305-3"
+    esrs: "E1-6"
+    type: number
+    unit_family: emissions
+    target_unit: tCO2e
+    keywords: [scope 3, value chain, indirect emissions, purchased goods, upstream]
+    patterns: ['(?:total\s*)?scope\s*3(?:\s*emissions)?(?:\s*\(total\))?']
+
+  - id: total_ghg_emissions
+    category: E
+    better: lower
+    label: Total GHG emissions (Scope 1+2+3)
+    gri: "305-1/2/3"
+    esrs: "E1-6"
+    type: number
+    unit_family: emissions
+    target_unit: tCO2e
+    keywords: [total ghg emissions, total emissions, scope 1+2+3, carbon footprint]
+    patterns: ['total\s*ghg\s*emissions', 'total\s*emissions\s*\(scope\s*1\s*\+\s*2\s*\+\s*3\)']
+
+  - id: nox_emissions
+    category: E
+    better: lower
+    label: NOx emissions
+    gri: "305-7"
+    esrs: "E2-4"
+    type: number
+    unit_family: mass
+    target_unit: t
+    keywords: [nox, nitrogen oxides, air pollutants, air emissions]
+    patterns: ['nox|nitrogen\s*oxides']
+
+  - id: sox_emissions
+    category: E
+    better: lower
+    label: SOx emissions
+    gri: "305-7"
+    esrs: "E2-4"
+    type: number
+    unit_family: mass
+    target_unit: t
+    keywords: [sox, sulphur oxides, sulfur oxides, air pollutants]
+    patterns: ['sox|sul(?:ph|f)ur\s*oxides']
+
+  - id: water_withdrawal
+    category: E
+    better: lower
+    label: Total water withdrawal
+    gri: "303-3"
+    esrs: "E3-4"
+    type: number
+    unit_family: water
+    target_unit: ML
+    keywords: [water withdrawal, water withdrawn, groundwater, surface water, third-party water]
+    patterns: ['(?:total\s*)?water\s*withdra(?:wal|wn)']
+
+  - id: water_discharge
+    category: E
+    better: lower
+    label: Total water discharge
+    gri: "303-4"
+    esrs: "E3-4"
+    type: number
+    unit_family: water
+    target_unit: ML
+    keywords: [water discharge, wastewater, effluent, discharged]
+    patterns: ['(?:total\s*)?(?:water|wastewater)\s*discharge(?:d)?']
+
+  - id: water_consumption
+    category: E
+    better: lower
+    label: Total water consumption
+    gri: "303-5"
+    esrs: "E3-4"
+    type: number
+    unit_family: water
+    target_unit: ML
+    keywords: [water consumption, water consumed]
+    patterns: ['(?:total\s*)?water\s*consum(?:ption|ed)']
+
+  - id: net_zero_target_year
+    category: E
+    label: Net-zero target year
+    gri: "305-5"
+    esrs: "E1-4"
+    type: year
+    keywords: [net zero, net-zero, carbon neutral, science based targets, sbti]
+    patterns: ['net[\s-]*zero[^.\n]{0,60}?by\s+(20\d\d)']
+
+  - id: environmental_policy
+    category: E
+    label: Environmental policy / management system (summary)
+    gri: "3-3"
+    esrs: "E1-2"
+    type: text
+    keywords: [environmental policy, iso 14001, environmental management system, climate policy]
+
+  # ---------------- SOCIAL ----------------
+  - id: total_employees
+    category: S
+    label: Total employees (headcount)
+    gri: "2-7"
+    esrs: "S1-6"
+    type: count
+    keywords: [employees, headcount, workforce, fte, total employees]
+    patterns: ['total\s*(?:number\s*of\s*)?employees(?:\s*\(headcount\))?', 'total\s*headcount', 'total\s*workforce']
+
+  - id: female_employees_pct
+    category: S
+    better: higher
+    label: Women in total workforce
+    gri: "405-1"
+    esrs: "S1-9"
+    type: percent
+    keywords: [women, female, gender diversity, gender split]
+    patterns: ['(?:women|female)(?:\s*employees)?\s*(?:in\s*(?:the\s*)?(?:total\s*)?workforce)?\s*\(%\)', '(?:share\s*of\s*)?(?:women|female)\s*(?:employees|in\s*workforce)']
+
+  - id: employee_turnover_rate
+    category: S
+    better: lower
+    label: Employee turnover / attrition rate
+    gri: "401-1"
+    esrs: "S1-6"
+    type: percent
+    keywords: [turnover, attrition, voluntary turnover, leavers]
+    patterns: ['(?:total\s*)?(?:employee\s*)?(?:turnover|attrition)\s*rate']
+
+  - id: new_hires
+    category: S
+    label: New employee hires
+    gri: "401-1"
+    esrs: "S1-6"
+    type: count
+    keywords: [new hires, new employees, recruitment, hired]
+    patterns: ['new\s*(?:employee\s*)?hires']
+
+  - id: ltifr
+    category: S
+    better: lower
+    label: Lost-time injury frequency rate (per 1m hours)
+    gri: "403-9"
+    esrs: "S1-14"
+    type: number
+    keywords: [ltifr, lost time injury, injury rate, recordable injuries, health and safety]
+    patterns: ['ltifr|lost[\s-]*time\s*injury\s*frequency\s*rate']
+
+  - id: fatalities
+    category: S
+    better: lower
+    label: Work-related fatalities
+    gri: "403-9"
+    esrs: "S1-14"
+    type: count
+    keywords: [fatalities, fatality, work-related deaths]
+    patterns: ['(?:work[\s-]*related\s*)?fatalities']
+
+  - id: avg_training_hours
+    category: S
+    better: higher
+    label: Average training hours per employee
+    gri: "404-1"
+    esrs: "S1-13"
+    type: number
+    keywords: [training hours, average hours of training, learning and development]
+    patterns: ['average\s*(?:hours\s*of\s*)?training(?:\s*hours)?(?:\s*per\s*employee)?']
+
+  - id: human_rights_policy
+    category: S
+    label: Human rights / labour policy (summary)
+    gri: "2-23"
+    esrs: "S1-1"
+    type: text
+    keywords: [human rights, labour rights, modern slavery, code of conduct, freedom of association]
+
+  # ---------------- GOVERNANCE ----------------
+  - id: board_size
+    category: G
+    label: Board size (number of directors)
+    gri: "2-9"
+    esrs: "G1 / ESRS 2 GOV-1"
+    type: count
+    keywords: [board of directors, supervisory board, board members, board composition]
+    patterns: ['(?:total\s*)?(?:number\s*of\s*)?(?:board|supervisory\s*board)\s*(?:members|directors|size)']
+
+  - id: independent_directors
+    category: G
+    better: higher
+    label: Independent directors
+    gri: "2-9"
+    esrs: "ESRS 2 GOV-1"
+    type: count
+    keywords: [independent directors, independent members, independence]
+    patterns: ['independent\s*(?:non[\s-]*executive\s*)?(?:directors|members)']
+
+  - id: female_directors
+    category: G
+    better: higher
+    label: Women on the board
+    gri: "405-1"
+    esrs: "ESRS 2 GOV-1"
+    type: count
+    keywords: [women on the board, female directors, board diversity]
+    patterns: ['(?:women|female)\s*(?:on\s*the\s*board|directors|board\s*members)']
+
+  - id: ceo_chair_separated
+    category: G
+    label: CEO and Chair roles separated
+    gri: "2-11"
+    esrs: "ESRS 2 GOV-1"
+    type: boolean
+    keywords: [chair, chairman, chief executive, ceo, separate roles, combined role]
+
+  - id: ceo_total_compensation
+    category: G
+    label: CEO total remuneration
+    gri: "2-19 / 2-21"
+    esrs: "ESRS 2 GOV-3"
+    type: number
+    unit_family: currency
+    target_unit: EUR
+    keywords: [ceo remuneration, total compensation, remuneration report, chief executive officer pay]
+    patterns: ['(?:ceo|chief\s*executive\s*officer)\s*total\s*(?:remuneration|compensation)']
+
+  - id: board_committees
+    category: G
+    label: Board committees
+    gri: "2-9"
+    esrs: "ESRS 2 GOV-1"
+    type: text
+    keywords: [audit committee, nomination committee, remuneration committee, committees of the board]
+
+  - id: confirmed_corruption_incidents
+    category: G
+    better: lower
+    label: Confirmed incidents of corruption
+    gri: "205-3"
+    esrs: "G1-4"
+    type: count
+    keywords: [corruption, bribery, confirmed incidents, anti-corruption]
+    patterns: ['confirmed\s*incidents\s*of\s*corruption']
+
+  - id: whistleblower_mechanism
+    category: G
+    label: Whistleblower / speak-up mechanism (summary)
+    gri: "2-26"
+    esrs: "G1-1"
+    type: text
+    keywords: [whistleblower, whistleblowing, speak up, hotline, grievance mechanism]

@@ -1,0 +1,13 @@
+pdfplumber>=0.10
+pypdfium2>=4.0
+pandas>=2.0
+openpyxl>=3.1
+pyyaml>=6.0
+rapidocr_onnxruntime>=1.3   # built-in OCR for scanned/image pages (pure pip, models included)
+numpy>=1.24
+pytesseract>=0.3     # optional alternative OCR (needs the Tesseract program)
+anthropic>=0.40      # optional: only for --extractor llm / hybrid
+reportlab>=4.0       # only to generate the sample reports
+pytest>=8.0
+flask>=3.0          # dashboard
+gunicorn>=22.0      # dashboard in production (Render / Railway / Docker)

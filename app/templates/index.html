@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESG Extractor</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%231f5b45%22/%3E%3Ctext x=%2216%22 y=%2221%22 font-size=%2211%22 font-family=%22Arial%22 font-weight=%22700%22 fill=%22white%22 text-anchor=%22middle%22%3EESG%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f5f6f3; --panel:#ffffff; --ink:#17201b; --muted:#5f6b64; --line:#e3e6e1;
+  --brand:#1f5b45; --brand-2:#2f7d5f; --brand-soft:#e7f1ec;
+  --ok:#2f7d5f; --ok-soft:#e3f1e9; --warn:#a86b00; --warn-soft:#fff3d6; --miss:#7a827d; --miss-soft:#eef0ed;
+  --bad:#b23b2e; --E:#2f7d5f; --S:#2c6a9a; --G:#7a5aa6;
+  --radius:12px; --shadow:0 1px 2px rgba(20,30,25,.05),0 4px 16px rgba(20,30,25,.05);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--brand-2)}
+button{font:inherit;cursor:pointer}
+header{background:var(--brand);color:#fff}
+.bar{max-width:1240px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:.2px;color:#fff;text-decoration:none}
+.logo-mark{width:30px;height:30px;border-radius:8px;background:#fff;display:grid;place-items:center;color:var(--brand);font-weight:800;font-size:13px}
+.tag{font-size:12px;opacity:.75;font-weight:400}
+.bar nav{margin-left:auto;display:flex;gap:4px}
+.bar nav a{color:#fff;text-decoration:none;padding:6px 12px;border-radius:8px;opacity:.85}
+.bar nav a.active,.bar nav a:hover{background:rgba(255,255,255,.14);opacity:1}
+main{max-width:1240px;margin:0 auto;padding:24px}
+h1{font-size:22px;margin:0 0 4px} h2{font-size:16px;margin:0 0 12px} h3{font-size:14px;margin:0}
+.sub{color:var(--muted);margin:0 0 20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:1.4fr 1fr} .g5{grid-template-columns:repeat(5,1fr)} .g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:600px){.tag{display:none}.bar{padding:12px 16px}main{padding:16px}.progress-doc{grid-template-columns:1fr}.stage-label{text-align:left}}
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}.g5{grid-template-columns:repeat(2,1fr)}}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 14px;border-radius:9px;font-weight:600;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.btn:hover{border-color:#c9cfc8}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-2)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ok{color:var(--ok)} .btn.bad{color:var(--bad)}
+
+/* pipeline strip */
+.pipeline{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.pstep{flex:1;min-width:120px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.pstep b{display:block;font-size:13px}.pstep span{font-size:12px;color:var(--muted)}
+.pstep i{font-style:normal;font-size:11px;font-weight:700;color:var(--brand-2);letter-spacing:.5px}
+
+/* upload */
+[hidden]{display:none!important}
+.drop{display:block;cursor:pointer;border:2px dashed #c9d3cc;border-radius:12px;padding:26px;text-align:center;color:var(--muted);background:#fafbf9;transition:.15s}
+.drop.over{border-color:var(--brand-2);background:var(--brand-soft)}
+.drop strong{color:var(--ink)}
+.files{margin:14px 0;display:flex;flex-direction:column;gap:8px}
+.frow{display:grid;grid-template-columns:1.2fr 1.2fr 90px 32px;gap:8px;align-items:center}
+.frow .fname{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+input[type=text],input[type=number]{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;width:100%;background:#fff}
+input:focus{outline:2px solid var(--brand-soft);border-color:var(--brand-2)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:6px 0 16px}
+.seg button{border:0;background:#fff;padding:8px 14px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--brand);color:#fff}
+.seg button:disabled{color:#aab2ad;cursor:not-allowed}
+.hint{font-size:12px;color:var(--muted)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.err{color:var(--bad);font-size:13px;margin-top:8px}
+
+/* runs list */
+.runs{display:flex;flex-direction:column;gap:8px}
+.run-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:inherit;background:#fff}
+.run-item:hover{border-color:#c9cfc8}
+.run-item .meta{font-size:12px;color:var(--muted)}
+.minibar{display:flex;height:6px;border-radius:4px;overflow:hidden;width:110px;background:var(--miss-soft);margin-left:auto;flex-shrink:0}
+
+/* run view */
+.runhead{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.runhead .actions{margin-left:auto}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;background:var(--brand-soft);color:var(--brand)}
+.kpi{padding:16px}
+.kpi .v{font-size:26px;font-weight:700;letter-spacing:-.5px}
+.kpi .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.kpi.ok .v{color:var(--ok)} .kpi.warn .v{color:var(--warn)}
+.progress-doc{display:grid;grid-template-columns:220px 1fr 90px;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.progress-doc:last-child{border-bottom:0}
+.stepper{display:flex;gap:4px}
+.stepper div{flex:1;height:8px;border-radius:4px;background:var(--line);position:relative}
+.stepper div.done{background:var(--brand-2)}
+.stepper div.now{background:linear-gradient(90deg,var(--brand-2),#9cd1b8,var(--brand-2));background-size:200% 100%;animation:mv 1.1s linear infinite}
+@keyframes mv{to{background-position:-200% 0}}
+.stage-label{font-size:12px;color:var(--muted);text-align:right}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:24px 0 16px;flex-wrap:wrap}
+.tabs button{border:0;background:none;padding:10px 14px;color:var(--muted);font-weight:600;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--ink);border-color:var(--brand)}
+.count{display:inline-block;min-width:20px;padding:0 6px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font-size:12px;margin-left:4px}
+.count.zero{background:var(--ok-soft);color:var(--ok)}
+
+.company-sel{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.company-sel button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;font-weight:600}
+.company-sel button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.cov-row{display:grid;grid-template-columns:140px 1fr 80px;gap:12px;align-items:center;margin:10px 0}
+.cov-row .name{font-weight:600;display:flex;gap:8px;align-items:center}
+.dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+.stack{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--miss-soft)}
+.stack .a{background:var(--ok)} .stack .r{background:#e9b949} .stack .m{background:#d5d9d5}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:8px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+
+.checks li{margin:6px 0;font-size:13px}
+.checks{padding-left:18px;margin:0}
+
+/* review cards */
+.rq{display:flex;flex-direction:column;gap:12px}
+.rcard{background:#fff;border:1px solid var(--line);border-left:4px solid #e9b949;border-radius:10px;padding:14px 16px}
+.rcard.done{border-left-color:var(--ok);opacity:.8}
+.rtop{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.rtop .std{font-size:12px;color:var(--muted)}
+.rtop .co{margin-left:auto;font-size:12px;color:var(--muted)}
+.val{font-size:18px;font-weight:700;margin:6px 0}
+.val small{font-size:13px;font-weight:500;color:var(--muted)}
+.issues{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.issue{background:var(--warn-soft);color:#7a4e00;border-radius:6px;padding:2px 8px;font-size:12px}
+.issue.good{background:var(--ok-soft);color:var(--ok)}
+.evidence{background:#f7f8f6;border-radius:8px;padding:8px 10px;font-size:13px;color:#39433d;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin:8px 0;word-break:break-word}
+.rbtns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.editbox{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.editbox input{max-width:180px}
+.empty{padding:40px;text-align:center;color:var(--muted)}
+
+/* data table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);background:#fafbf9;position:sticky;top:0}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.cat td{background:#fafbf9;font-weight:700;font-size:12px;letter-spacing:.4px}
+tr.data:hover td{background:#fbfcfa;cursor:pointer}
+tr.ev td{background:#fbfcfa;padding-top:0}
+.status{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600}
+.status.accepted{background:var(--ok-soft);color:var(--ok)}
+.status.review{background:var(--warn-soft);color:var(--warn)}
+.status.missing{background:var(--miss-soft);color:var(--miss)}
+.status.error{background:#fbe5e2;color:var(--bad)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.conf{display:inline-block;width:46px;height:5px;background:var(--line);border-radius:3px;vertical-align:middle;margin-right:6px;overflow:hidden}
+.conf i{display:block;height:100%;background:var(--brand-2)}
+.filters{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filters select{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit;background:#fff}
+.tablewrap{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:10px}
+.cmp td,.cmp th{white-space:nowrap}
+footer{max-width:1240px;margin:0 auto;padding:10px 24px 40px;color:var(--muted);font-size:12px}
+.spark{vertical-align:middle}
+.dir{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.dir.improved{background:var(--ok-soft);color:var(--ok)} .dir.worsened{background:#fbe5e2;color:var(--bad)}
+.dir.flat,.dir.up,.dir.down{background:var(--miss-soft);color:var(--muted)}
+sup.src{color:var(--S);font-weight:700;margin-left:2px;cursor:help}
+sup.rst{color:var(--bad);font-weight:700;margin-left:2px;cursor:help}
+.restate{border-left:4px solid var(--bad);background:#fff}
+.restate li{margin:6px 0}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.addpanel{margin-top:16px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:.2s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <a class="logo" href="#/"><span class="logo-mark">ESG</span><span>ESG Extractor<br><span class="tag">Automated ESG data collection · GRI / ESRS mapped</span></span></a>
+  <nav><a href="#/" id="nav-new">New run</a><a href="#/runs" id="nav-runs">Runs</a></nav>
+</div></header>
+<main id="app"></main>
+<footer>Every value is traced to a page and a verbatim quote from the source report, and checked before export.</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (s, el=document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = v => {
+  if (v === null || v === undefined || v === "") return "—";
+  if (typeof v === "boolean") return v ? "Yes" : "No";
+  if (typeof v === "number") return Math.abs(v) >= 1000 ? v.toLocaleString("en-US",{maximumFractionDigits:1}) : String(+v.toFixed(4));
+  return String(v);
+};
+const CAT = {E:"Environmental", S:"Social", G:"Governance"};
+let CONFIG = null, POLL = null, STATE = {};
+
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2200); }
+async function api(url, opts={}) {
+  const r = await fetch(url, opts);
+  const data = r.headers.get("content-type")?.includes("json") ? await r.json() : null;
+  if (!r.ok) throw new Error((data && data.error) || `Request failed (${r.status})`);
+  return data;
+}
+
+/* ------------------------------------------------------------- router */
+async function route() {
+  clearInterval(POLL);
+  if (!CONFIG) CONFIG = await api("/api/config");
+  const h = location.hash || "#/";
+  $("#nav-new").classList.toggle("active", h === "#/");
+  $("#nav-runs").classList.toggle("active", h.startsWith("#/runs") || h.startsWith("#/run/"));
+  if (h.startsWith("#/run/")) return viewRun(h.split("/")[2]);
+  if (h === "#/runs") return viewRuns();
+  return viewNew();
+}
+window.addEventListener("hashchange", route);
+
+/* ------------------------------------------------------------- new run */
+const STEPS = [
+  ["1","Collect","Reports in, any format"],["2","Parse","Text, tables, OCR"],["3","Locate","Rank pages per KPI"],
+  ["4","Extract","Rules or Claude"],["5","Validate","Units + accounting checks"],["6","Review","Human checks flags only"],["7","Export","Excel / JSON"]];
+
+function viewNew() {
+  STATE.files = [];
+  STATE.extractor = "rules";
+  const llm = CONFIG.llm_available;
+  $("#app").innerHTML = `
+    <h1>Run the ESG pipeline</h1>
+    <p class="sub">Upload sustainability, annual or integrated reports. The pipeline extracts ${CONFIG.fields.length} ESG data points, validates them and sends only doubtful values to review.</p>
+    <div class="pipeline">${STEPS.map(s=>`<div class="pstep"><i>STEP ${s[0]}</i><b>${s[1]}</b><span>${s[2]}</span></div>`).join("")}</div>
+    <div class="grid g2">
+      <div class="card">
+        <h2>1 · Add reports</h2>
+        <label class="drop" id="drop"><input type="file" id="file" accept="application/pdf" multiple hidden>
+          <strong>Drop PDF reports here</strong> or click to browse<br><span class="hint">Company and year are guessed from the file name. Check them before running.</span></label>
+        <div class="files" id="files"></div>
+        <h2 style="margin-top:18px">2 · Extraction method</h2>
+        <div class="seg" id="seg">
+          <button data-x="rules" class="on">Rules (free)</button>
+          <button data-x="hybrid" ${llm?"":"disabled"}>Hybrid</button>
+          <button data-x="llm" ${llm?"":"disabled"}>Claude</button>
+        </div>
+        <div class="hint" id="xhint"></div>
+        <div class="actions" style="margin-top:16px">
+          <button class="btn primary" id="go" disabled>Run pipeline →</button>
+          <button class="btn" id="sample">Try with sample reports</button>
+        </div>
+        <div class="err" id="err"></div>
+      </div>
+      <div class="card">
+        <h2>Recent runs</h2><div class="runs" id="recent"><div class="hint">Loading…</div></div>
+      </div>
+    </div>`;
+  const hints = {
+    rules:"Pattern matching on tables and text. Deterministic and free. Best on clean data tables.",
+    hybrid:"Rules first, then Claude only for values the rules missed or doubted. Best accuracy per euro.",
+    llm:"Claude reads the ranked pages for every data point and cites page and quote for each value."};
+  const setHint = () => $("#xhint").textContent = hints[STATE.extractor] + (llm ? "" : " (Set ANTHROPIC_API_KEY on the server to enable Claude.)");
+  setHint();
+  $("#seg").onclick = e => { const b=e.target.closest("button"); if(!b||b.disabled) return;
+    STATE.extractor=b.dataset.x; [...$("#seg").children].forEach(x=>x.classList.toggle("on",x===b)); setHint(); };
+
+  const drop = $("#drop");
+  ["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over")}));
+  ["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over")}));
+  drop.addEventListener("drop", e => addFiles(e.dataTransfer.files));
+  $("#file").onchange = e => addFiles(e.target.files);
+  $("#go").onclick = submit;
+  $("#sample").onclick = async () => {
+    try { const r = await api("/api/runs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sample:true, extractor:STATE.extractor})});
+      location.hash = `#/run/${r.id}`; } catch(e){ $("#err").textContent = e.message; }
+  };
+  loadRecent($("#recent"), 5);
+}
+
+function guess(name){
+  const base = name.replace(/\.pdf$/i,"");
+  const y = (base.match(/(20\d\d)/)||[])[1] || String(new Date().getFullYear()-1);
+  const co = base.replace(/(20\d\d)/g," ").replace(/[_\-.]+/g," ")
+    .replace(/\b(sustainability|annual|integrated|esg|reports?|non ?financial|statement|fy|ar|sr|nfs|en|de|final|web)\b/gi," ")
+    .replace(/(\d+)?(ar|sr)\b/gi," ").replace(/\s+/g," ").trim().replace(/\b\w/g,c=>c.toUpperCase());
+  return {company: co || base, year: y};
+}
+function addFiles(list){
+  const known = (STATE.adding && STATE.run) ? [...new Set(STATE.run.docs.map(d=>d.company))] : [];
+  for (const f of list) if (/\.pdf$/i.test(f.name)) {
+    const g = guess(f.name), low = g.company.toLowerCase();
+    // in "add reports", reuse the exact company name already in the run so years line up
+    const match = known.find(k => k.toLowerCase().startsWith(low) || low.startsWith(k.toLowerCase().split(" ")[0]));
+    STATE.files.push({file:f, ...g, company: match || g.company});
+  }
+  renderFiles();
+}
+function renderFiles(){
+  $("#files").innerHTML = STATE.files.map((f,i)=>`
+    <div class="frow"><span class="fname" title="${esc(f.file.name)}">📄 ${esc(f.file.name)}</span>
+      <input type="text" data-i="${i}" data-k="company" value="${esc(f.company)}" placeholder="Company">
+      <input type="number" data-i="${i}" data-k="year" value="${esc(f.year)}" placeholder="Year">
+      <button class="btn sm" data-del="${i}" title="Remove">✕</button></div>`).join("");
+  $("#files").oninput = e => { const i=e.target.dataset.i; if(i!==undefined) STATE.files[i][e.target.dataset.k]=e.target.value; };
+  $("#files").onclick = e => { const d=e.target.dataset.del; if(d!==undefined){ STATE.files.splice(+d,1); renderFiles(); } };
+  const go = $("#go") || $("#go2"); if (go) go.disabled = !STATE.files.length;
+}
+async function submit(){
+  const fd = new FormData();
+  STATE.files.forEach(f=>{ fd.append("files", f.file); fd.append("company", f.company); fd.append("year", f.year); });
+  fd.append("extractor", STATE.extractor);
+  $("#go").disabled = true; $("#go").textContent = "Uploading…";
+  try { const r = await api("/api/runs",{method:"POST",body:fd}); location.hash = `#/run/${r.id}`; }
+  catch(e){ $("#err").textContent = e.message; $("#go").disabled=false; $("#go").textContent="Run pipeline →"; }
+}
+
+/* ------------------------------------------------------------- runs list */
+function minibar(s){ const n=(s.accepted+s.review+s.missing)||1;
+  return `<div class="minibar"><div style="width:${s.accepted/n*100}%;background:var(--ok)"></div><div style="width:${s.review/n*100}%;background:#e9b949"></div></div>`; }
+async function loadRecent(el, limit){
+  const runs = await api("/api/runs");
+  if (!runs.length) { el.innerHTML = `<div class="hint">No runs yet. Try the sample reports.</div>`; return; }
+  el.innerHTML = runs.slice(0, limit||999).map(r=>`
+    <a class="run-item" href="#/run/${r.id}">
+      <div><b>${esc([...new Set(r.companies)].join(", "))}</b><div class="meta">${esc(r.created.replace("T"," "))} · ${esc(r.extractor)} · ${r.status==="done"?`${r.summary.accepted} accepted · ${r.summary.review} to review`:"running…"}</div></div>
+      ${minibar(r.summary)}</a>`).join("");
+}
+async function viewRuns(){
+  $("#app").innerHTML = `<h1>Runs</h1><p class="sub">Every pipeline run is kept with its reports, results and review decisions.</p><div class="card"><div class="runs" id="all"></div></div>`;
+  loadRecent($("#all"));
+}
+
+/* ------------------------------------------------------------- run view */
+async function viewRun(id){
+  STATE.run = null; STATE.company = 0; STATE.tab = STATE.tab || "review";
+  $("#app").innerHTML = `<div class="hint">Loading run…</div>`;
+  const tick = async () => {
+    const run = await api(`/api/runs/${id}`);
+    STATE.run = run; renderRun();
+    if (run.status === "done") clearInterval(POLL);
+  };
+  await tick();
+  if (STATE.run.status !== "done") POLL = setInterval(tick, 800);
+}
+
+function allItems(run){
+  const fm = Object.fromEntries(CONFIG.fields.map(f=>[f.id,f]));
+  return run.docs.flatMap((d,di)=>(d.extractions||[]).map(e=>({...e, doc:di, company:d.company, year:d.year, f:fm[e.field_id]})));
+}
+
+function renderRun(){
+  const run = STATE.run, items = allItems(run), done = run.status === "done";
+  const n = items.length || 1;
+  const c = s => items.filter(i=>i.status===s).length;
+  const reviewedN = items.filter(i=>i.reviewed).length;
+  const prog = run.docs.map((d)=>{
+    const si = CONFIG.stages.indexOf(d.stage), stages = CONFIG.stages.slice(1);
+    return `<div class="progress-doc"><div><b>${esc(d.company)}</b> <span class="hint">${d.year}</span><div class="hint">${esc(d.file)}${d.pages?` · ${d.pages} pages`:""}${d.ocr_pages?` · ${d.ocr_pages} OCR`:""}</div>
+      ${d.ocr_skipped?`<div class="hint" style="color:var(--warn)" title="These pages are images. Run: pip install rapidocr_onnxruntime, restart the app, then re-run to read them.">⚠ ${d.ocr_skipped} image-only page${d.ocr_skipped>1?"s":""} skipped (no OCR)</div>`:""}</div>
+      <div class="stepper">${stages.map((s,k)=>`<div title="${s}" class="${d.stage==="error"?"":(k+1<si||d.stage==="done")?"done":(k+1===si?"now":"")}"></div>`).join("")}</div>
+      <div class="stage-label">${d.stage==="error"?`<span class="status error" title="${esc(d.error)}">error</span> <button class="btn sm" data-retry="1" title="${esc(d.error)}">Retry</button>`:d.stage==="done"?`✓ ${d.seconds}s`:esc(d.stage)+"…"}</div></div>`; }).join("");
+
+  const head = `
+    <div class="runhead">
+      <div><h1>${esc([...new Set(run.docs.map(d=>d.company))].join(" · "))}</h1>
+        <div class="hint">Run ${run.id} · ${esc(run.created.replace("T"," "))} · <span class="pill">${esc({rules:"Rules",hybrid:"Hybrid",llm:"Claude"}[run.extractor])}</span></div></div>
+      <div class="actions">
+        <button class="btn" id="addbtn" ${done?"":"disabled"} title="Add more reports, e.g. earlier years of the same company">＋ Add reports</button>
+        <a class="btn" href="/api/runs/${run.id}/export.json" ${done?"":"style='pointer-events:none;opacity:.45'"}>JSON</a>
+        <a class="btn primary" href="/api/runs/${run.id}/export.xlsx" ${done?"":"style='pointer-events:none;opacity:.45'"}>⬇ Download Excel</a>
+      </div>
+    </div>
+    <div class="card addpanel" id="addpanel" ${STATE.adding?"":"hidden"}>
+      <h2>Add reports to this run</h2>
+      <p class="hint" style="margin-top:-6px">Add earlier or later years of the same company to see trends and restatements, or other companies to compare. Use the same company name.</p>
+      <label class="drop" id="drop2"><input type="file" id="file2" accept="application/pdf" multiple hidden><strong>Drop PDF reports here</strong> or click to browse</label>
+      <div class="files" id="files"></div>
+      <div class="actions"><button class="btn primary" id="go2" disabled>Add &amp; run →</button><button class="btn" id="cancel2">Cancel</button></div>
+      <div class="err" id="err2"></div>
+    </div>
+    <div class="card" style="margin-top:16px"><h2>Pipeline progress</h2>${prog}</div>`;
+
+  if (!items.length) { $("#app").innerHTML = head; bindAdd(); bindRetry(); return; }
+
+  const kpis = `<div class="grid g5" style="margin-top:16px">
+    <div class="card kpi"><div class="l">Reports</div><div class="v">${run.docs.length}</div></div>
+    <div class="card kpi"><div class="l">Data points</div><div class="v">${items.length}</div></div>
+    <div class="card kpi ok"><div class="l">Auto-accepted</div><div class="v">${Math.round(items.filter(i=>i.status==="accepted"&&!i.reviewed).length/n*100)}%</div></div>
+    <div class="card kpi warn"><div class="l">Needs review</div><div class="v">${c("review")}</div></div>
+    <div class="card kpi"><div class="l">Not disclosed / found</div><div class="v">${c("missing")}</div></div></div>`;
+
+  const tabs = `<div class="tabs">
+    <button data-t="review" class="${STATE.tab==="review"?"on":""}">Review queue <span class="count ${c("review")?"":"zero"}">${c("review")}</span></button>
+    <button data-t="overview" class="${STATE.tab==="overview"?"on":""}">Overview</button>
+    <button data-t="data" class="${STATE.tab==="data"?"on":""}">All data</button>
+    <button data-t="trends" class="${STATE.tab==="trends"?"on":""}">Trends &amp; restatements</button>
+    <button data-t="compare" class="${STATE.tab==="compare"?"on":""}">Side by side</button></div>`;
+
+  // keep scroll + open editors stable during polling
+  const y = window.scrollY;
+  $("#app").innerHTML = head + kpis + tabs + `<div id="tab"></div>`;
+  $(".tabs").onclick = e => { const b=e.target.closest("button"); if(b){ STATE.tab=b.dataset.t; renderRun(); } };
+  ({review:tabReview, overview:tabOverview, data:tabData, compare:tabCompare, trends:tabTrends})[STATE.tab](items);
+  bindAdd();
+  bindRetry();
+  window.scrollTo(0,y);
+}
+
+function evidenceLink(i){ return i.page ? `<a href="/api/runs/${STATE.run.id}/pdf/${i.doc}#page=${i.page}" target="_blank">Open report p.${i.page} ↗</a>` : ""; }
+
+function tabReview(items){
+  const q = items.filter(i=>i.status==="review" || (i.reviewed && i.status!=="missing" && STATE.showDone));
+  const open = items.filter(i=>i.status==="review");
+  if (!open.length) { $("#tab").innerHTML = `<div class="card empty">✅ Nothing left to review. Every extracted value has passed the checks or been confirmed by a reviewer.<br><br><a class="btn primary" href="/api/runs/${STATE.run.id}/export.xlsx">⬇ Download Excel</a></div>`; return; }
+  $("#tab").innerHTML = `<p class="hint" style="margin-top:0">These values failed a check or have low confidence. Approve them, correct them, or mark them as not disclosed. Everything else was accepted automatically.</p>
+   <div class="rq">${open.map(i=>`
+    <div class="rcard" data-doc="${i.doc}" data-f="${i.field_id}">
+      <div class="rtop"><h3>${esc(i.f.label)}</h3><span class="std">${CAT[i.f.category]} · GRI ${esc(i.f.gri)} · ESRS ${esc(i.f.esrs)}</span><span class="co">${esc(i.company)} ${i.year}</span></div>
+      <div class="val">${esc(fmt(i.value))} <small>${esc(i.unit||"")}${i.normalized_value!==null&&i.normalized_unit&&String(i.normalized_value)!==String(i.value)?` → ${fmt(i.normalized_value)} ${esc(i.normalized_unit)}`:""}</small></div>
+      <div class="issues">${(i.issues||[]).map(x=>`<span class="issue">${esc(x)}</span>`).join("")}<span class="issue good">confidence ${(i.confidence||0).toFixed(2)} · ${esc(i.method)}</span></div>
+      ${i.evidence?`<div class="evidence">“${esc(i.evidence)}”</div>`:""}
+      <div class="rbtns">
+        <button class="btn sm ok" data-a="accept">✓ Approve</button>
+        <button class="btn sm" data-a="edit">✎ Correct</button>
+        <button class="btn sm bad" data-a="reject">Not disclosed</button>
+        <span class="hint" style="margin-left:auto">${evidenceLink(i)}</span>
+      </div>
+      <div class="editbox" hidden><input type="text" placeholder="Value" value="${esc(i.value??"")}"><input type="text" placeholder="Unit" value="${esc(i.unit??"")}"><button class="btn sm primary" data-a="save">Save</button></div>
+    </div>`).join("")}</div>`;
+  $("#tab").onclick = async e => {
+    const b = e.target.closest("button[data-a]"); if(!b) return;
+    const card = b.closest(".rcard"), a = b.dataset.a;
+    if (a === "edit") { card.querySelector(".editbox").hidden = false; card.querySelector(".editbox input").focus(); return; }
+    const body = {doc:+card.dataset.doc, field_id:card.dataset.f, action:a==="save"?"edit":a};
+    if (a === "save") { const ins = card.querySelectorAll(".editbox input"); body.value = ins[0].value; body.unit = ins[1].value; }
+    try { await api(`/api/runs/${STATE.run.id}/review`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+      toast({accept:"Approved",save:"Corrected and saved",reject:"Marked as not disclosed"}[a]);
+      STATE.run = await api(`/api/runs/${STATE.run.id}`); renderRun(); }
+    catch(err){ toast(err.message); }
+  };
+}
+
+function companyPicker(){
+  return `<div class="company-sel">${STATE.run.docs.map((d,k)=>`<button data-c="${k}" class="${k===STATE.company?"on":""}">${esc(d.company)} ${d.year}</button>`).join("")}</div>`;
+}
+function bindPicker(fn){ $(".company-sel").onclick = e => { const b=e.target.closest("button"); if(b){ STATE.company=+b.dataset.c; fn(); } }; }
+
+function tabOverview(){
+  const items = allItems(STATE.run).filter(i=>i.doc===STATE.company);
+  const covRows = ["E","S","G"].map(cat=>{
+    const xs = items.filter(i=>i.f.category===cat), n = xs.length||1;
+    const a = xs.filter(i=>i.status==="accepted").length, r = xs.filter(i=>i.status==="review").length, m = xs.filter(i=>i.status==="missing").length;
+    return `<div class="cov-row"><div class="name"><span class="dot" style="background:var(--${cat})"></span>${CAT[cat]}</div>
+      <div class="stack"><div class="a" style="width:${a/n*100}%"></div><div class="r" style="width:${r/n*100}%"></div><div class="m" style="width:${m/n*100}%"></div></div>
+      <div class="hint">${a+r}/${xs.length} found</div></div>`; }).join("");
+  const get = id => items.find(i=>i.field_id===id);
+  const headline = [["scope1_emissions","Scope 1"],["scope2_market","Scope 2 (market)"],["scope3_emissions","Scope 3"],
+                    ["total_employees","Employees"],["female_employees_pct","Women in workforce"],["board_size","Board size"]]
+    .map(([id,l])=>{ const i=get(id); return `<div class="card kpi"><div class="l">${l}</div><div class="v" style="font-size:20px">${i&&i.normalized_value!==null?fmt(i.normalized_value):"—"} <small style="font-size:12px;color:var(--muted)">${i&&i.normalized_value!==null?esc(i.normalized_unit||""):""}</small></div>
+      <div class="hint">${i?`<span class="status ${i.status}">${i.status}</span>`:""}</div></div>`; }).join("");
+  const groups = new Map();
+  items.forEach(i=>(i.issues||[]).filter(x=>!/reviewer|low confidence/.test(x)).forEach(x=>{
+    if(!groups.has(x)) groups.set(x,[]); groups.get(x).push(i.f.label); }));
+  const lowConf = items.filter(i=>(i.issues||[]).some(x=>/low confidence/.test(x))).map(i=>i.f.label);
+  if (lowConf.length) groups.set("Low confidence (found in running text, not a data table) - needs a human check", lowConf);
+  const uniq = [...groups].map(([x,labels])=>({x,labels}));
+  $("#tab").innerHTML = companyPicker() + `
+    <div class="grid g2">
+      <div class="card"><h2>Disclosure coverage by pillar</h2>${covRows}
+        <div class="legend"><span style="--c:var(--ok)">accepted</span><span style="--c:#e9b949">needs review</span><span style="--c:#d5d9d5">not found</span></div></div>
+      <div class="card"><h2>What the validation caught</h2>${uniq.length?`<ul class="checks">${uniq.map(o=>`<li><b>${esc(o.x)}</b><br><span class="hint">${o.labels.map(esc).join(" · ")}</span></li>`).join("")}</ul>`:`<div class="hint">No rule violations. All accounting checks passed (Scope 1+2+3 = total, water balance, board arithmetic, ranges).</div>`}</div>
+    </div>
+    <div class="grid g3" style="margin-top:16px">${headline}</div>`;
+  bindPicker(tabOverview);
+}
+
+function tabData(){
+  const items = allItems(STATE.run).filter(i=>i.doc===STATE.company);
+  const fs = STATE.filterStatus||"";
+  const rows = ["E","S","G"].map(cat=>{
+    const xs = items.filter(i=>i.f.category===cat && (!fs || i.status===fs));
+    if(!xs.length) return "";
+    return `<tr class="cat"><td colspan="7"><span class="dot" style="background:var(--${cat})"></span> ${CAT[cat]}</td></tr>` + xs.map(i=>`
+      <tr class="data" data-k="${i.field_id}"><td><b>${esc(i.f.label)}</b></td><td class="hint">${esc(i.f.gri)}</td>
+        <td class="num">${esc(fmt(i.value))} <span class="hint">${esc(i.unit||"")}</span></td>
+        <td class="num">${i.f.type==="text"?"<span class='hint'>summary</span>":esc(fmt(i.normalized_value))} <span class="hint">${i.f.type==="text"?"":esc(i.normalized_unit||"")}</span></td>
+        <td class="num">${i.page??"—"}</td>
+        <td><span class="conf"><i style="width:${(i.confidence||0)*100}%"></i></span>${(i.confidence||0).toFixed(2)}</td>
+        <td><span class="status ${i.status}">${i.status}</span></td></tr>
+      <tr class="ev" data-ev="${i.field_id}" hidden><td colspan="7">
+        ${i.evidence?`<div class="evidence">“${esc(i.evidence)}”</div>`:`<div class="hint">No evidence: value not found in the report.</div>`}
+        <div class="hint">${(i.issues||[]).map(esc).join(" · ")} ${i.evidence_verified===true?"· ✓ quote verified on page":i.evidence_verified===false?"· ✗ quote not found on page":""} · method: ${esc(i.method)} · ${evidenceLink(i)}</div></td></tr>`).join("");
+  }).join("");
+  $("#tab").innerHTML = companyPicker() + `
+    <div class="filters"><select id="fs"><option value="">All statuses</option>${["accepted","review","missing"].map(s=>`<option ${s===fs?"selected":""}>${s}</option>`).join("")}</select>
+      <span class="hint" style="align-self:center">Click a row to see the source quote.</span></div>
+    <div class="tablewrap"><table><thead><tr><th>Data point</th><th>GRI</th><th class="num">Reported</th><th class="num">Normalised</th><th class="num">Page</th><th>Confidence</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  bindPicker(tabData);
+  $("#fs").onchange = e => { STATE.filterStatus = e.target.value; tabData(); };
+  $("tbody").onclick = e => { const tr=e.target.closest("tr.data"); if(!tr||e.target.closest("a")) return; const ev=$(`tr[data-ev="${tr.dataset.k}"]`); ev.hidden=!ev.hidden; };
+}
+
+function tabCompare(){
+  const items = allItems(STATE.run), docs = STATE.run.docs;
+  const fields = CONFIG.fields.filter(f=>f.type!=="text");
+  const cell = (d,f) => { const i = items.find(x=>x.doc===d && x.field_id===f.id); if(!i) return "<td>—</td>";
+    const color = {accepted:"",review:"background:var(--warn-soft)",missing:"color:var(--miss)"}[i.status];
+    return `<td class="num" style="${color}" title="${esc(i.status)}">${i.normalized_value===null?"—":esc(fmt(i.normalized_value))}</td>`; };
+  $("#tab").innerHTML = `<p class="hint" style="margin-top:0">All values converted to one unit per KPI so companies can be compared directly. Yellow cells are still in review.</p>
+   <div class="tablewrap"><table class="cmp"><thead><tr><th>Data point</th><th>Unit</th>${docs.map(d=>`<th class="num">${esc(d.company)} ${d.year}</th>`).join("")}</tr></thead><tbody>
+   ${["E","S","G"].map(cat=>`<tr class="cat"><td colspan="${docs.length+2}">${CAT[cat]}</td></tr>`+fields.filter(f=>f.category===cat).map(f=>`<tr><td>${esc(f.label)}</td><td class="hint">${esc(f.target_unit|| (f.type==="percent"?"%":f.type==="boolean"?"yes/no":f.type))}</td>${docs.map((_,d)=>cell(d,f)).join("")}</tr>`).join("")).join("")}
+   </tbody></table></div>`;
+}
+
+function bindRetry(){
+  document.querySelectorAll("[data-retry]").forEach(b => b.onclick = async () => {
+    try { await api(`/api/runs/${STATE.run.id}/retry`,{method:"POST"}); toast("Retrying failed reports"); viewRun(STATE.run.id); }
+    catch(e){ toast(e.message); } });
+}
+
+/* ------------------------------------------------------------- add reports to a run */
+function bindAdd(){
+  const btn = $("#addbtn"); if (!btn) return;
+  btn.onclick = () => { STATE.adding = true; STATE.files = []; renderRun(); $("#addpanel").scrollIntoView({behavior:"smooth"}); };
+  const panel = $("#addpanel"); if (!panel || panel.hidden) return;
+  if (STATE.files && STATE.files.length) renderFiles();
+  const drop = $("#drop2");
+  ["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over")}));
+  ["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over")}));
+  drop.addEventListener("drop", e => addFiles(e.dataTransfer.files));
+  $("#file2").onchange = e => addFiles(e.target.files);
+  $("#cancel2").onclick = () => { STATE.adding = false; STATE.files = []; panel.hidden = true; };
+  $("#go2").onclick = async () => {
+    const fd = new FormData();
+    STATE.files.forEach(f=>{ fd.append("files", f.file); fd.append("company", f.company); fd.append("year", f.year); });
+    $("#go2").disabled = true; $("#go2").textContent = "Uploading…";
+    try { await api(`/api/runs/${STATE.run.id}/docs`,{method:"POST",body:fd});
+      STATE.adding = false; STATE.files = []; toast("Reports added - processing"); viewRun(STATE.run.id); }
+    catch(e){ $("#err2").textContent = e.message; $("#go2").disabled = false; $("#go2").textContent = "Add & run →"; }
+  };
+}
+
+/* ------------------------------------------------------------- trends */
+function spark(points, better){
+  const ys = Object.keys(points).map(Number).sort();
+  if (ys.length < 2) return "";
+  const vals = ys.map(y=>points[y].value), lo = Math.min(...vals), hi = Math.max(...vals), w = 84, h = 24, pad = 3;
+  const xy = vals.map((v,k)=>[pad + k*(w-2*pad)/(vals.length-1), hi===lo ? h/2 : h-pad-(v-lo)/(hi-lo)*(h-2*pad)]);
+  const last = vals[vals.length-1], prev = vals[vals.length-2];
+  const good = !better ? null : (better==="lower" ? last<prev : last>prev);
+  const col = good===null || last===prev ? "var(--muted)" : good ? "var(--ok)" : "var(--bad)";
+  return `<svg class="spark" width="${w}" height="${h}"><polyline fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${xy.map(p=>p.join(",")).join(" ")}"/>${xy.map((p,k)=>`<circle cx="${p[0]}" cy="${p[1]}" r="${k===xy.length-1?2.6:1.6}" fill="${col}"/>`).join("")}</svg>`;
+}
+const DIR = {improved:"▲ improved", worsened:"▼ worsened", flat:"● stable", up:"▲ up", down:"▼ down"};
+
+async function tabTrends(){
+  $("#tab").innerHTML = `<div class="hint">Building time series…</div>`;
+  const T = await api(`/api/runs/${STATE.run.id}/trends`);
+  const keys = Object.keys(T).sort((a,b)=>T[b].years.length - T[a].years.length);
+  if (!keys.length) { $("#tab").innerHTML = `<div class="card empty">No numeric data yet.</div>`; return; }
+  if (!STATE.trendCo || !T[STATE.trendCo]) STATE.trendCo = keys[0];
+  const t = T[STATE.trendCo], years = t.years, fm = Object.fromEntries(CONFIG.fields.map(f=>[f.id,f]));
+  const multi = years.length >= 2;
+  const ser = Object.entries(t.series);
+  const counts = {improved:0, worsened:0, flat:0};
+  ser.forEach(([,s])=>{ if (s.direction in counts) counts[s.direction]++; });
+  const cell = (s,y) => { const p = s.points[y]; if(!p) return `<td class="num hint">—</td>`;
+    const mark = p.restated ? `<sup class="rst" title="Restated in the ${p.report_year} report. Originally reported: ${fmt(p.original)}">R</sup>`
+               : p.source==="prior-year column" ? `<sup class="src" title="Taken from the prior-year column of the ${p.report_year} report">p</sup>` : "";
+    const bg = p.status==="review" ? "background:var(--warn-soft)" : "";
+    return `<td class="num" style="${bg}">${esc(fmt(p.value))}${mark}</td>`; };
+  const rows = ["E","S","G"].map(cat=>{
+    const xs = ser.filter(([fid])=>fm[fid].category===cat);
+    if (!xs.length) return "";
+    return `<tr class="cat"><td colspan="${years.length+5}"><span class="dot" style="background:var(--${cat})"></span> ${CAT[cat]}</td></tr>` +
+      xs.map(([fid,s])=>`<tr><td>${esc(fm[fid].label)}</td><td class="hint">${esc(s.unit)}</td>${years.map(y=>cell(s,y)).join("")}
+        <td>${spark(s.points, s.better)}</td>
+        <td class="num">${s.change_pct===undefined||s.change_pct===null?"—":(s.change_pct>0?"+":"")+s.change_pct+"%"}</td>
+        <td>${s.direction?`<span class="dir ${s.direction}">${DIR[s.direction]}</span>`:""}</td></tr>`).join(""); }).join("");
+  const rest = t.restatements.length ? `<div class="card restate" style="margin-bottom:16px"><h2>⚠ ${t.restatements.length} restatement${t.restatements.length>1?"s":""} detected</h2>
+      <p class="hint" style="margin-top:-6px">The company changed figures it had already published. The trend uses the restated values. Check the report's notes for the reason (methodology, scope or error correction).</p>
+      <ul class="checks">${t.restatements.map(r=>`<li><b>${esc(r.label)} ${r.year}:</b> originally ${fmt(r.originally_reported)} ${esc(r.unit)} → restated ${fmt(r.restated_as)} ${esc(r.unit)} in the ${r.restated_in} report <span class="dir ${Math.abs(r.change_pct)>=5?"worsened":"flat"}">${r.change_pct>0?"+":""}${r.change_pct}%</span></li>`).join("")}</ul></div>`
+    : multi ? `<div class="card" style="margin-bottom:16px"><span class="dir improved">✓</span> No restatements: every figure that appears in two reports matches.</div>` : "";
+  $("#tab").innerHTML = `
+    <div class="company-sel">${keys.map(k=>`<button data-k="${k}" class="${k===STATE.trendCo?"on":""}">${esc(T[k].company)} <span class="hint" style="color:inherit;opacity:.7">${T[k].years.length} yr${T[k].years.length>1?"s":""}</span></button>`).join("")}</div>
+    ${multi ? `<div class="chips"><span class="dir improved">▲ ${counts.improved} improved</span><span class="dir worsened">▼ ${counts.worsened} worsened</span><span class="dir flat">● ${counts.flat} stable</span>
+      <span class="hint" style="align-self:center">${years[0]}–${years[years.length-1]} · change = latest year vs the year before</span></div>`
+      : `<div class="card" style="margin-bottom:16px">Only one year available for this company. Use <b>＋ Add reports</b> to add another year's report.</div>`}
+    ${rest}
+    <div class="tablewrap"><table class="cmp"><thead><tr><th>Data point</th><th>Unit</th>${years.map(y=>`<th class="num">${y}</th>`).join("")}<th>Trend</th><th class="num">Δ vs prev.</th><th>Assessment</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="hint"><sup class="src">p</sup> taken from the prior-year column of the next year's report · <sup class="rst">R</sup> restated value (hover for the original) · yellow = still in review · "improved" uses the KPI's direction (e.g. lower emissions, higher training hours)</p>`;
+  $(".company-sel").onclick = e => { const b=e.target.closest("button"); if(b){ STATE.trendCo=b.dataset.k; tabTrends(); } };
+}
+
+route();
+</script>
+</body>
+</html>
